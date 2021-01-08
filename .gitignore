@@ -1,0 +1,9 @@
+RemoteSystemsTempFiles/
+.ipynb_checkpoints/
+.DS_Store
+__pycache__/
+*.pyc
+*.png
+*.jpg
+images/
+masks/
