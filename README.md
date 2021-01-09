@@ -11,7 +11,7 @@ To do it, I have created a Deep Learning model (with Tensorflow) taking 2 inputs
 Here is the API call:
 ```python
 # CFG : the config dictionnary
-# dataframe: a pandas.DataFrame whith at least 1 columns: "filename" containing the name(including the extension)
+# dataframe: a pandas.DataFrame with at least 2 columns: "filename" containing the name(including the extension)
 #            for each image, and another column "target" with the labels "benign" or "malignant"
 # images_path: the path where all inputs images are located
 # segmentations_path: the path where all outputs segmentations will be saved
@@ -19,7 +19,7 @@ get_segmentations(CFG, dataframe, images_path, segmentations_path)
 ```
 2. Finally, we can compute tabular features:
 ```python
-# dataframe: a pandas.DataFrame whith at least 1 columns: "filename" containing the name(including the extension)
+# dataframe: a pandas.DataFrame with at least 2 columns: "filename" containing the name(including the extension)
 #            for each image, and another column "target" with the labels "benign" or "malignant"
 # images_path: the path where all inputs images are located
 # segmentations_path: the path where all outputs segmentations are located
@@ -38,3 +38,62 @@ solidity | ![equation](https://latex.codecogs.com/svg.latex?(A_x%20+%20A_y)/A) |
 ![equation](https://latex.codecogs.com/svg.latex?(\pi%20d)/P) |
 ![equation](https://latex.codecogs.com/svg.latex?(4\pi%20A)/P^2) |
 ![equation](https://latex.codecogs.com/svg.latex?P/(\pi%20D)) |
+
+
+## 2) Writing & reading TFRecords
+1. Writing a TFRecord
+```python
+# CFG : the config dictionnary
+# dataframe: a pandas.DataFrame containing columns in this order: "filename" containing the name(including the extension)
+#            for each image, "target" with the labels "benign" or "malignant", and all other columns are the features.
+#            In our exemple, we will have 21 columns ("filename","target",+19 features)
+# images_path: the path where all inputs images are located
+tfrecord = write_tfrecord(CFG, dataframe, images_path)
+# tfrecord (output): the path where the tfrecord file has been created
+```
+2. Reading a TFRecord
+```python
+# CFG : the config dictionnary
+# tfrecord_train(test): the path containing the tfrecord file built with training(test) data
+# augment: if images will be augmented. (True if training, False if testing)
+# repeat: if images will be repeated (True if training, False if testing)
+# shuffle: if images will be shuffled (True if training, False if testing)
+dataset_train = read_tfrecord(CFG, tfrecord_train, augment=True, repeat=True, shuffle=True)
+dataset_test  = read_tfrecord(CFG, tfrecord_test, augment=False, repeat=False, shuffle=False, ordered=False)
+# dataset_train(test) (output): a dataset to give to our model.
+```
+## 3) Create Model
+Here we have pre-trained weights for different configurations:
+* B0 (net_count=1): 
+* B0-4 (net_count=5): 
+* B0-6 (net_count=7): 
+```python
+# CFG : the config dictionnary
+# fine_tune(OPTIONNAL, default:False): True:Fine-tuning, False:Transfer-learning
+# model_weights(OPTIONNAL): the path containing valid weights for the model
+model = get_model(CFG, fine_tune=False, model_weights="???")
+# model(output): a tensorflow model
+```
+
+## 4) Fit & Predict
+1. Fit
+```python
+callbacks = [tf.keras.callbacks.ReduceLROnPlateau(),
+             tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=5),
+             tf.keras.callbacks.ModelCheckpoint("models/best.h5", save_best_only=True, monitor='val_auc', mode='max', save_weights_only=True)]
+
+history = model.fit(
+    dataset_train,
+    steps_per_epoch=len(df)/CFG['batch_size'],
+    epochs=CFG['epochs'],
+    callbacks=callbacks,
+)
+```
+
+2. Predict
+```python
+preds = model.predict(
+        dataset_test,
+        steps = len(df)/CFG['batch_size'],
+)
+```
