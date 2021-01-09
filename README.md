@@ -6,25 +6,34 @@ To do it, I have created a Deep Learning model (with Tensorflow) taking 2 inputs
 * Inputs 1: tabular features, previously extracted from each images
 * Inputs 2: color pictures resized to (224,224,3)
 
+## 0) Prepairing environnement
+Don't forget to modify the CONFIG.txt file (it's optionnal, I used the default configuration)
+```python
+from API import *
+
+CFG = get_config()
+```
+
 ## 1) Extracting tabular features
 1. First of all, before extracting features, we need to segment all images from the dataset.
 Here is the API call:
 ```python
 # CFG : the config dictionnary
-# dataframe: a pandas.DataFrame with at least 2 columns: "filename" containing the name(including the extension)
-#            for each image, and another column "target" with the labels "benign" or "malignant"
+# dataframe: a pandas.DataFrame with at least 1 column: "filename" containing the name(including the extension)
+#            for each image, and another column "target"(OPTIONNAL) with the labels "benign" or "malignant"
 # images_path: the path where all inputs images are located
 # segmentations_path: the path where all outputs segmentations will be saved
 get_segmentations(CFG, dataframe, images_path, segmentations_path)
 ```
 2. Finally, we can compute tabular features:
 ```python
-# dataframe: a pandas.DataFrame with at least 2 columns: "filename" containing the name(including the extension)
-#            for each image, and another column "target" with the labels "benign" or "malignant"
+# dataframe: a pandas.DataFrame with at least 1 column: "filename" containing the name(including the extension)
+#            for each image, and another column "target"(OPTIONNAL) with the labels "benign" or "malignant"
 # images_path: the path where all inputs images are located
 # segmentations_path: the path where all outputs segmentations are located
 df = get_tabular_dataframe(dataframe, images_path, segmentations_path)
 ```
+The returned DataFrame is normalized (MinMax scaler) 
 
 Features are calculated with region properties.
 I also tried to reproduce the famous *ABCD* rule (Assymetry, Border irregularity & Colors Descriptors)
@@ -45,10 +54,11 @@ solidity | ![equation](https://latex.codecogs.com/svg.latex?(A_x%20+%20A_y)/A) |
 ```python
 # CFG : the config dictionnary
 # dataframe: a pandas.DataFrame containing columns in this order: "filename" containing the name(including the extension)
-#            for each image, "target" with the labels "benign" or "malignant", and all other columns are the features.
+#            for each image, "target"(OPTIONNAL) with the labels "benign" or "malignant", and all other columns are the features.
 #            In our exemple, we will have 21 columns ("filename","target",+19 features)
 # images_path: the path where all inputs images are located
-write_tfrecord(CFG, dataframe, images_path)
+# labeled: boolean, if labels are included in the dataframe (False for new data to predict, True for training)
+write_tfrecord(CFG, dataframe, images_path, labeled)
 ```
 2. Reading a TFRecord
 ```python
@@ -57,9 +67,10 @@ write_tfrecord(CFG, dataframe, images_path)
 # augment: if images will be augmented. (True if training, False if testing)
 # repeat: if images will be repeated (True if training, False if testing)
 # shuffle: if images will be shuffled (True if training, False if testing)
-# labeled: if images is labeled (True if training, False if testing)
+# labeled: if images are labeled (True if training, False if testing)
 dataset_train = read_tfrecord(CFG, tfrecord_train, labeled=True)
-dataset_test  = read_tfrecord(CFG, tfrecord_test, augment=False, repeat=False, shuffle=False, ordered=False, labeled=False)
+dataset_test  = read_tfrecord(CFG, tfrecord_test, augment=False,
+                              repeat=False, shuffle=False, ordered=False, labeled=False)
 # dataset_train(test) (output): a dataset to give to our model.
 ```
 ## 3) Create Model
