@@ -1,0 +1,28 @@
+[CONFIGURATION]
+# Execution parameters
+device = GPU
+
+# Augmentation parameters
+rot = 170.0
+shr = 2.0
+hzoom = 8.0
+wzoom = 8.0
+hshift = 8.0
+wshift = 8.0
+
+# Learning_rate parameters
+lr_start = 0.000006
+lr_max = 0.00000145
+lr_min = 0.000001
+lr_rampup = 5
+lr_sustain = 0
+lr_decay = 0.85
+
+# Model parameters
+img_size = 224
+tabular_size = 19
+epochs = 100
+batch_size = 32
+net_count = 5
+optimizer = adam
+label_smooth_fac = 0.05

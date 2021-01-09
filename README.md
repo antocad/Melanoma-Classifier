@@ -9,6 +9,7 @@ To do it, I have created a Deep Learning model (with Tensorflow) taking 2 inputs
 ## 0) Prepairing environnement
 Don't forget to modify the CONFIG.txt file (it's optionnal, I used the default configuration)
 ```python
+!pip install -U efficientnet
 from API import *
 
 CFG = get_config()
@@ -33,7 +34,7 @@ get_segmentations(CFG, dataframe, images_path, segmentations_path)
 # segmentations_path: the path where all outputs segmentations are located
 df = get_tabular_dataframe(dataframe, images_path, segmentations_path)
 ```
-The returned DataFrame is normalized (MinMax scaler) 
+The returned DataFrame is normalized (MinMax scaler)
 
 Features are calculated with region properties.
 I also tried to reproduce the famous *ABCD* rule (Assymetry, Border irregularity & Colors Descriptors)
