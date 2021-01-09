@@ -1,8 +1,8 @@
 # Melanoma Classifier
 
-This project aims to classify a new melanoma picture as malignant or benign. 
+This project aims to classify a new melanoma picture as malignant or benign.
 
-To do it, I have created a Deep Learning model (with Tensorflow) taking 2 inputs: 
+To do it, I have created a Deep Learning model (with Tensorflow) taking 2 inputs:
 * Inputs 1: tabular features, previously extracted from each images
 * Inputs 2: color pictures resized to (224,224,3)
 
@@ -30,7 +30,7 @@ Features are calculated with region properties.
 I also tried to reproduce the famous *ABCD* rule (Assymetry, Border irregularity & Colors Descriptors)
 
 Morphological formulas | Assymetry [ref](https://www.researchgate.net/publication/319354997_Classification_of_Benign_and_Malignant_Melanocytic_Lesions_A_CAD_Tool) | Border irregularity [ref](https://www.researchgate.net/publication/319354997_Classification_of_Benign_and_Malignant_Melanocytic_Lesions_A_CAD_Tool) | Colors [ref](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3160648/) |
------------- | ------------ | ------------ | ------------ | 
+------------ | ------------ | ------------ | ------------ |
 extent | ![equation](https://latex.codecogs.com/svg.latex?min(A_x,%20A_y)/A) | ![equation](https://latex.codecogs.com/svg.latex?P%20*%20(1/d%20-%201/D)) | F4, F5, F6
 solidity | ![equation](https://latex.codecogs.com/svg.latex?(A_x%20+%20A_y)/A) | | F10, F11, F12
 ![equation](https://latex.codecogs.com/svg.latex?d/D) | | | F13, F14, F15
@@ -48,8 +48,7 @@ solidity | ![equation](https://latex.codecogs.com/svg.latex?(A_x%20+%20A_y)/A) |
 #            for each image, "target" with the labels "benign" or "malignant", and all other columns are the features.
 #            In our exemple, we will have 21 columns ("filename","target",+19 features)
 # images_path: the path where all inputs images are located
-tfrecord = write_tfrecord(CFG, dataframe, images_path)
-# tfrecord (output): the path where the tfrecord file has been created
+write_tfrecord(CFG, dataframe, images_path)
 ```
 2. Reading a TFRecord
 ```python
@@ -58,15 +57,16 @@ tfrecord = write_tfrecord(CFG, dataframe, images_path)
 # augment: if images will be augmented. (True if training, False if testing)
 # repeat: if images will be repeated (True if training, False if testing)
 # shuffle: if images will be shuffled (True if training, False if testing)
-dataset_train = read_tfrecord(CFG, tfrecord_train, augment=True, repeat=True, shuffle=True)
-dataset_test  = read_tfrecord(CFG, tfrecord_test, augment=False, repeat=False, shuffle=False, ordered=False)
+# labeled: if images is labeled (True if training, False if testing)
+dataset_train = read_tfrecord(CFG, tfrecord_train, labeled=True)
+dataset_test  = read_tfrecord(CFG, tfrecord_test, augment=False, repeat=False, shuffle=False, ordered=False, labeled=False)
 # dataset_train(test) (output): a dataset to give to our model.
 ```
 ## 3) Create Model
 Here we have pre-trained weights for different configurations:
-* B0 (net_count=1): 
-* B0-4 (net_count=5): 
-* B0-6 (net_count=7): 
+* B0 (net_count=1):
+* **B0-4 (net_count=5):**
+* B0-6 (net_count=7):
 ```python
 # CFG : the config dictionnary
 # fine_tune(OPTIONNAL, default:False): True:Fine-tuning, False:Transfer-learning
