@@ -19,7 +19,9 @@ def get_config():
     config.read('CONFIG.txt')
     CFG = dict()
     for k in config['CONFIGURATION']:
-        if k!='device' and k!='optimizer':
+        if k in ['img_size', 'tabular_size', 'epochs', 'batch_size', 'net_count']:
+            CFG[k] = int(config['CONFIGURATION'][k])
+        elif k!='device' and k!='optimizer':
             CFG[k] = float(config['CONFIGURATION'][k])
         else:
             CFG[k] = config['CONFIGURATION'][k]

@@ -1,13 +1,17 @@
 # Melanoma Classifier
 
+![version](https://img.shields.io/badge/version-v1.0.0-orange.svg?style=plastic)
+![pytorch](https://img.shields.io/badge/tensorflow-v2.3.1-green.svg?style=plastic)
+![license](https://img.shields.io/badge/license-CC_BY--NC_4.0-green.svg?style=plastic)
+
 This project aims to classify a new melanoma picture as malignant or benign.
 
-To do it, I have created a Deep Learning model (with Tensorflow) taking 2 inputs:
-* Inputs 1: tabular features, previously extracted from each images
-* Inputs 2: color pictures resized to (224,224,3)
+(Be careful when interpreting the results, it will never replace a doctor's opinion.)
 
-## 0) Prepairing environnement
-Don't forget to modify the CONFIG.txt file (it's optionnal, I used the default configuration)
+![presentation](https://nsa40.casimages.com/img/2021/01/10//210110011813699976.png)
+
+## 0) Requirements
+Don't forget to modify the CONFIG.txt file (default configuration works)
 ```python
 !pip install -U efficientnet
 from API import *
@@ -109,3 +113,11 @@ preds = model.predict(
         steps = len(df)/CFG['batch_size'],
 )
 ```
+
+## License
+
+CC 4.0 Attribution-NonCommercial International
+
+The software is for educational and academic research purposes only.
+
+<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Licence Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a><br />Ce(tte) œuvre est mise à disposition selon les termes de la <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Licence Creative Commons Attribution - Pas d’Utilisation Commerciale 4.0 International</a>.
