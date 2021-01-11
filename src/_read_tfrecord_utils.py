@@ -100,7 +100,7 @@ def decode_image(cfg, image_data, augment):
     image = tf.reshape(image, [cfg['img_size'], cfg['img_size'], 3])
     return image
 
-def tfrecord_to_dataset(cfg, example, augment, labeled):
+def decode_example(cfg, example, augment, labeled):
     if labeled:
         TFREC_FORMAT = {
             "image": tf.io.FixedLenFeature([], tf.string), # tf.string means bytestring
@@ -113,11 +113,9 @@ def tfrecord_to_dataset(cfg, example, augment, labeled):
             "image": tf.io.FixedLenFeature([], tf.string), # tf.string means bytestring
             "image_name": tf.io.FixedLenFeature([], tf.string),
         }
-    #on fait le dictionnaire de toutes les features tabulaires
     tabulars = dict()
     for i in range(cfg['tabular_size']):
         tabulars[str(i+1)] = tf.io.FixedLenFeature([], tf.float32)
-    #on merge les 2
     TFREC_FORMAT = {**TFREC_FORMAT, **tabulars}
     example = tf.io.parse_single_example(example, TFREC_FORMAT)
     image = decode_image(cfg, example['image'], augment)
@@ -127,14 +125,31 @@ def tfrecord_to_dataset(cfg, example, augment, labeled):
         return (image, features_tab), label # returns a dataset of (image, label) pairs
     return (image, features_tab), None
 
-def load_dataset(cfg, tfrecord, augment, labeled, ordered):
+def tfrecord_to_dataset(cfg, tfrecord, labeled, augment):
     # Read from TFRecords. For optimal performance, reading from multiple files at once and
     # disregarding data order. Order does not matter since we will be shuffling the data anyway.
+    #Training case
+    if labeled:
+        shuffle = True
+        ordered = False
+        repeat = True
+    #Testing case
+    else:
+        shuffle = False
+        ordered = True
+        augment = False
+        repeat = False
     ignore_order = tf.data.Options()
     if not ordered:
         ignore_order.experimental_deterministic = False # disable order, increase speed
     dataset = tf.data.TFRecordDataset(tfrecord, num_parallel_reads=cfg['AUTOTUNE']) # automatically interleaves reads from multiple files
     dataset = dataset.with_options(ignore_order) # uses data as soon as it streams in, rather than in its original order
-    dataset = dataset.map(lambda x: tfrecord_to_dataset(cfg, x, augment, labeled), num_parallel_calls=cfg['AUTOTUNE'])
+    dataset = dataset.map(lambda x: decode_example(cfg, x, augment, labeled), num_parallel_calls=cfg['AUTOTUNE'])
     # returns a dataset of (image, label) pairs if labeled=True or (image, id) pairs if labeled=False
+    if repeat:
+        dataset = dataset.repeat() # the training dataset must repeat for several epochs
+    if shuffle:
+        dataset = dataset.shuffle(32)
+    dataset = dataset.batch(cfg['batch_size'])
+    dataset = dataset.prefetch(cfg['AUTOTUNE']) # prefetch next batch while training (autotune prefetch buffer size)
     return dataset

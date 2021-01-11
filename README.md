@@ -58,31 +58,28 @@ solidity | ![equation](https://latex.codecogs.com/svg.latex?(A_x%20+%20A_y)/A) |
 1. Writing a TFRecord
 ```python
 # CFG : the config dictionnary
-# dataframe: a pandas.DataFrame containing columns in this order: "filename" containing the name(including the extension)
+# df: a pandas.DataFrame containing columns in this order: "filename" containing the name(including the extension)
 #            for each image, "target"(OPTIONNAL) with the labels "benign" or "malignant", and all other columns are the features.
 #            In our exemple, we will have 21 columns ("filename","target",+19 features)
 # images_path: the path where all inputs images are located
-# labeled: boolean, if labels are included in the dataframe (False for new data to predict, True for training)
-write_tfrecord(CFG, dataframe, images_path, labeled)
+# output_path: path where the TFRecord file will be stored)
+write_tfrecord(CFG, df, images_path, output_path)
 ```
 2. Reading a TFRecord
 ```python
 # CFG : the config dictionnary
 # tfrecord_train(test): the path containing the tfrecord file built with training(test) data
-# augment: if images will be augmented. (True if training, False if testing)
-# repeat: if images will be repeated (True if training, False if testing)
-# shuffle: if images will be shuffled (True if training, False if testing)
 # labeled: if images are labeled (True if training, False if testing)
+# augment (OPTIONNAL): if Images should be augmented (only if labeled=True for training)
 dataset_train = read_tfrecord(CFG, tfrecord_train, labeled=True)
-dataset_test  = read_tfrecord(CFG, tfrecord_test, augment=False,
-                              repeat=False, shuffle=False, ordered=False, labeled=False)
+dataset_test  = read_tfrecord(CFG, tfrecord_test, labeled=False)
 # dataset_train(test) (output): a dataset to give to our model.
 ```
 ## 3) Create Model
 Here we have pre-trained weights for different configurations:
-* B0 (net_count=1):
-* **B0-4 (net_count=5):**
-* B0-6 (net_count=7):
+* B0 (net_count=1): [Download](https://drive.google.com/file/d/1PNdDLuqte449kiUOe6phiA0jT3KUb797/view?usp=sharing)
+* **B0-4 (net_count=5):** [Download](https://drive.google.com/file/d/12sUsSYToBW2wmIIXJHZfLtgxZaxiXNDW/view?usp=sharing)
+* B0-6 (net_count=7): [Download](https://drive.google.com/file/d/1IRsYhzuG_UgFrmlWEYCYQsiAtxDz2p9K/view?usp=sharing)
 ```python
 # CFG : the config dictionnary
 # fine_tune(OPTIONNAL, default:False): True:Fine-tuning, False:Transfer-learning
@@ -113,6 +110,13 @@ preds = model.predict(
         steps = len(df)/CFG['batch_size'],
 )
 ```
+
+
+## To-Do List
+
+- [ ] Easiest way to implement his own preprocessing function (when writing a TFRecord file)
+- [ ] TPU support (need to write multiple TFRecord files)
+- [ ] Improve the segmentation part to improve features' quality
 
 ## License
 

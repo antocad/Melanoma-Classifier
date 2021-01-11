@@ -64,3 +64,13 @@ def build_model(cfg, fine_tune, model_weights):
     if model_weights != None:
         model.load_weights(model_weights)
     return model
+
+def compile_model(cfg, fine_tune, model_weights):
+    with cfg['strategy'].scope():
+        losses = [tf.keras.losses.BinaryCrossentropy(label_smoothing = cfg['label_smooth_fac'])]
+        model = build_model(cfg, fine_tune, model_weights)
+        model.compile(optimizer=cfg['optimizer'],
+                      loss=losses,
+                      metrics=['accuracy', keras.metrics.AUC(name='auc')])
+        #tf.keras.utils.plot_model(model)
+        return model

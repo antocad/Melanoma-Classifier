@@ -1,6 +1,8 @@
 import numpy as np
-import cv2
+import pandas as pd
+import cv2, os
 from scipy import ndimage
+import matplotlib.pyplot as plt
 
 def wb(channel, perc = 0.05):
     """
@@ -62,3 +64,17 @@ def get_mask(cfg, img):
     img = dullrazor(img)
     mask = calcul_mask(cfg, img).astype('uint8') #en gris
     return mask
+
+def compute_segmentations(cfg, df, input_path, output_path):
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
+    i = 0
+    for img_path in np.array(df.filename):
+        img = cv2.imread(input_path+img_path)
+        img = cv2.resize(img, (cfg['img_size'], cfg['img_size']))
+        mask = get_mask(cfg, img)
+        cv2.imwrite(output_path+img_path, mask*255)
+        i+=1
+        if i%1000 == 0:
+            print(i)
+    return None
