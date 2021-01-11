@@ -14,7 +14,8 @@ def get_segmentations(cfg, df, input_path, output_path):
     @param input_path: the path where all inputs images are located
     @param output_path: the path where all output segmentations will be saved
 
-    Compute the segmentation for each image in the dataframe df, in the 'filename' column, and located in the input_path. The results will be stored in output_path.
+    Compute the segmentation for each image in the dataframe df, in the 'filename' column,
+    and located in the input_path. The results will be stored in output_path.
 
     @return: None
     """
@@ -34,26 +35,29 @@ def get_tabular_dataframe(df, images_path, segmentations_path):
     """
     return get_tabular_features(df, images_path, segmentations_path)
 
-def write_tfrecord(cfg, df, img_path, output_path):
+def write_tfrecord(cfg, df, img_path, output_path, preprocess_function=preprocessing):
     """
     @param cfg: config dictionnary
     @param df: pandas.DataFrame containing all tabular features + 'filename' (and 'target'(OPTIONNAL)) columns
                ! columns must be in this order: ['image_name', 'target'(OPTIONNAL), ...FEATURES... ] !
     @param img_path: the path where all colored images are located
     @param output_path: the path where the output TFRecord file will be saved
+    @param preprocess_function (OPTIONNAL): function to preprocess images. (None for no preprocessing)
+                    This function should take only one parameter: an image (BGR) with shape (224,224,3)
+                    and with values in [0,255]. It returns an image with the same format (not especially in BGR).
 
     This function will store each image in a single TFRecord file (maybe in the future I will add multiple TFRecord for TPU support).
-    ! Before storing each image, we can apply a pre-processing function on each picture HERE (dataframe_to_tfrecord function).
+    ! Before storing each image, we can apply a pre-processing function on each picture HERE.
 
     @return: None. The TFRecord file is stored under output_path.
     """
-    return dataframe_to_tfrecord(cfg, df, img_path, output_path)
+    return dataframe_to_tfrecord(cfg, df, img_path, output_path, preprocess_function)
 
 def read_tfrecord(cfg, tfrecord, labeled, augment=True):
     """
     @param cfg: config dictionnary
     @param tfrecord: the path where the TFRecord file is located
-    @param labeled: True if the readen dataset contains labeled data or not (True for training, False for Testing)
+    @param labeled: True if the tfrecord to read contains labeled data or not (True for training, False for Testing)
     @param augment (OPTIONNAL): boolean: True if data should be augmented (default). (only interesting if labeled=True)
 
     This function will perform data augmentation if augment=True and labeled=True

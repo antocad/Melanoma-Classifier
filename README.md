@@ -63,7 +63,8 @@ solidity | ![equation](https://latex.codecogs.com/svg.latex?(A_x%20+%20A_y)/A) |
 #            In our exemple, we will have 21 columns ("filename","target",+19 features)
 # images_path: the path where all inputs images are located
 # output_path: path where the TFRecord file will be stored)
-write_tfrecord(CFG, df, images_path, output_path)
+# preprocess_function: (OPTIONNAL) a function to preprocess images. None = no preprocessing
+write_tfrecord(CFG, df, images_path, output_path, preprocess_function)
 ```
 2. Reading a TFRecord
 ```python
@@ -114,7 +115,7 @@ preds = model.predict(
 
 ## To-Do List
 
-- [ ] Easiest way to implement his own preprocessing function (when writing a TFRecord file)
+- [x] Easier way to implement his own preprocessing function (when writing a TFRecord file)
 - [ ] TPU support (need to write multiple TFRecord files)
 - [ ] Improve the segmentation part to improve features' quality
 

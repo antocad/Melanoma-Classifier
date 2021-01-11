@@ -12,7 +12,7 @@ def wb(channel, perc = 0.05):
     channel = np.uint8(np.clip((channel-mi)*255.0/(ma-mi), 0, 255))
     return channel
 
-def dullrazor(img, lowbound=20, filterstruc=7, inpaintmat=3):
+def dullrazor(img, lowbound=20, filterstruc=3, inpaintmat=3):
     #grayscale
     imgtmp1 = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     #applying a blackhat

@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+from src._get_segmentations_utils import wb, dullrazor
 import cv2
 
 def _bytes_feature(value):
@@ -45,7 +46,47 @@ def encode_example(image, image_name, target, features_tab):
     example_proto = tf.train.Example(features=tf.train.Features(feature=features))
     return example_proto.SerializeToString()
 
-def dataframe_to_tfrecord(cfg, df, img_path, output_path):
+
+################################################################################
+# PREPROCESSING PART ###########################################################
+################################################################################
+def crop(img):
+    height, width, depth = img.shape
+    x = int(width/2)
+    y = int(height/2)
+    r = np.amin((x,y))
+    circle_img = np.zeros((height, width), np.uint8)
+    cv2.circle(circle_img, (x,y), int(r), 1, thickness=-1)
+    img = cv2.bitwise_and(img, img, mask=circle_img)
+    return img
+
+def filter1(img, sigmaX=7):
+    #filter crop clean
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.addWeighted(img, 4, cv2.GaussianBlur(img, (0,0) , sigmaX), -4, 128)
+    return img
+
+def filter2(image):
+    #Bengraham
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    image = cv2.addWeighted(image, 4, cv2.GaussianBlur(image, (0,0), 256/10), -4, 128)
+    return image
+
+def filter3(image):
+    #Neuronengineer
+    image = cv2.addWeighted(image, 4, cv2.GaussianBlur(image, (0,0), 10), -4 , 128)
+    return image
+
+def preprocessing(img):
+    img  = np.dstack([wb(channel, 0.05) for channel in cv2.split(img)])
+    img = dullrazor(img)
+    img = crop(img)
+    return img
+################################################################################
+################################################################################
+################################################################################
+
+def dataframe_to_tfrecord(cfg, df, img_path, output_path, preprocess_function):
     labeled = False
     if 'target' in df.columns:
         labeled = True
@@ -61,11 +102,9 @@ def dataframe_to_tfrecord(cfg, df, img_path, output_path):
             for k in range(CT2):
                 img = cv2.imread(PATH+IMGS[SIZE*j+k])
                 img = cv2.resize(img, (cfg['img_size'],cfg['img_size']))
-
-                ######################
-                # PREPROCESSING HERE #
-                ######################
-
+                #Apply our preprocessing function here
+                if preprocess_function != None:
+                    img = preprocess_function(img)
                 img = cv2.imencode('.jpg', img, (cv2.IMWRITE_JPEG_QUALITY, 94))[1]
                 image_name = IMGS[SIZE*j+k]
                 row = df.loc[df.filename == image_name]
