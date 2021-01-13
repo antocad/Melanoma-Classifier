@@ -125,10 +125,9 @@ def decode_example(cfg, example, augment, labeled):
         return (image, features_tab), label # returns a dataset of (image, label) pairs
     return (image, features_tab), None
 
-def tfrecord_to_dataset(cfg, tfrecord, labeled, augment):
-    # Read from TFRecords. For optimal performance, reading from multiple files at once and
-    # disregarding data order. Order does not matter since we will be shuffling the data anyway.
+def tfrecord_to_dataset(cfg, tfrecords_path, labeled, augment):
     #Training case
+    files = np.sort(np.array(tf.io.gfile.glob(tfrecords_path + 'tfrecord*.tfrec')))
     if labeled:
         shuffle = True
         ordered = False
@@ -142,14 +141,14 @@ def tfrecord_to_dataset(cfg, tfrecord, labeled, augment):
     ignore_order = tf.data.Options()
     if not ordered:
         ignore_order.experimental_deterministic = False # disable order, increase speed
-    dataset = tf.data.TFRecordDataset(tfrecord, num_parallel_reads=cfg['AUTOTUNE']) # automatically interleaves reads from multiple files
-    dataset = dataset.with_options(ignore_order) # uses data as soon as it streams in, rather than in its original order
-    dataset = dataset.map(lambda x: decode_example(cfg, x, augment, labeled), num_parallel_calls=cfg['AUTOTUNE'])
-    # returns a dataset of (image, label) pairs if labeled=True or (image, id) pairs if labeled=False
+    dataset = tf.data.TFRecordDataset(files, num_parallel_reads=cfg['AUTOTUNE']) # automatically interleaves reads from multiple files
+    dataset = dataset.with_options(ignore_order)
+    dataset = dataset.cache()
     if repeat:
         dataset = dataset.repeat() # the training dataset must repeat for several epochs
     if shuffle:
         dataset = dataset.shuffle(32)
-    dataset = dataset.batch(cfg['batch_size'])
+    dataset = dataset.map(lambda x: decode_example(cfg, x, augment, labeled), num_parallel_calls=cfg['AUTOTUNE'])
+    dataset = dataset.batch(cfg['batch_size'] * cfg['REPLICAS'])
     dataset = dataset.prefetch(cfg['AUTOTUNE']) # prefetch next batch while training (autotune prefetch buffer size)
     return dataset

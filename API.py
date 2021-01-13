@@ -21,8 +21,9 @@ def get_segmentations(cfg, df, input_path, output_path):
     """
     return compute_segmentations(cfg, df, input_path, output_path)
 
-def get_tabular_dataframe(df, images_path, segmentations_path):
+def get_tabular_dataframe(cfg, df, images_path, segmentations_path):
     """
+    @param cfg: config dictionnary
     @param df: dataframe with a column 'filename' with the name of each image (including the format);
                also with a column "target" (OPTIONAL, for training) containing the target "benign" or "malignant"
     @param images_path: the path where all colored images are located
@@ -33,30 +34,32 @@ def get_tabular_dataframe(df, images_path, segmentations_path):
 
     @return: pandas.DataFrame with all columns ['image_name', 'target', ...FEATURES... ] in this order!
     """
-    return get_tabular_features(df, images_path, segmentations_path)
+    return get_tabular_features(cfg, df, images_path, segmentations_path)
 
-def write_tfrecord(cfg, df, img_path, output_path, preprocess_function=preprocessing):
+def write_tfrecord(cfg, df, img_path, output_path, nb=1, preprocess_function=preprocessing):
     """
     @param cfg: config dictionnary
     @param df: pandas.DataFrame containing all tabular features + 'filename' (and 'target'(OPTIONNAL)) columns
                ! columns must be in this order: ['image_name', 'target'(OPTIONNAL), ...FEATURES... ] !
     @param img_path: the path where all colored images are located
-    @param output_path: the path where the output TFRecord file will be saved
+    @param output_path: the path where all output TFRecord files will be saved
+    @param nb (OPTIONNAL, default=1): the number of TFRecord files to create (for parallelism using TPU)
     @param preprocess_function (OPTIONNAL): function to preprocess images. (None for no preprocessing)
-                    This function should take only one parameter: an image (BGR) with shape (224,224,3)
+                    This function should take only one parameter: an image (BGR) with the shape (224,224,3)
                     and with values in [0,255]. It returns an image with the same format (not especially in BGR).
+                    DEFAULT: apply a white-balancing and remove hairs
 
     This function will store each image in a single TFRecord file (maybe in the future I will add multiple TFRecord for TPU support).
     ! Before storing each image, we can apply a pre-processing function on each picture HERE.
 
     @return: None. The TFRecord file is stored under output_path.
     """
-    return dataframe_to_tfrecord(cfg, df, img_path, output_path, preprocess_function)
+    return dataframe_to_tfrecord(cfg, df, img_path, output_path, preprocess_function, nb)
 
-def read_tfrecord(cfg, tfrecord, labeled, augment=True):
+def read_tfrecord(cfg, tfrecords_path, labeled, augment=True):
     """
     @param cfg: config dictionnary
-    @param tfrecord: the path where the TFRecord file is located
+    @param tfrecords_path: the path where all TFRecord files are located
     @param labeled: True if the tfrecord to read contains labeled data or not (True for training, False for Testing)
     @param augment (OPTIONNAL): boolean: True if data should be augmented (default). (only interesting if labeled=True)
 
@@ -64,7 +67,7 @@ def read_tfrecord(cfg, tfrecord, labeled, augment=True):
 
     @return: tensorflow Dataset
     """
-    return tfrecord_to_dataset(cfg, tfrecord, labeled, augment)
+    return tfrecord_to_dataset(cfg, tfrecords_path, labeled, augment)
 
 def get_model(cfg, fine_tune=False, model_weights=None):
     """

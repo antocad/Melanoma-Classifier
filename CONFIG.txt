@@ -1,6 +1,6 @@
 [CONFIGURATION]
 # Execution parameters
-device = GPU
+device = TPU
 
 # Augmentation parameters
 rot = 170.0

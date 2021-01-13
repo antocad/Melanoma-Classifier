@@ -105,7 +105,7 @@ def MinMaxNormalizer(df):
     joined = original.join(normalized)
     return joined[colorder]
 
-def get_tabular_features(df, images_path, segmentations_path):
+def get_tabular_features(cfg, df, images_path, segmentations_path):
     X = []
     i = 0
     while i < len(df):
@@ -113,6 +113,7 @@ def get_tabular_features(df, images_path, segmentations_path):
         pcolor = images_path + df.filename[i]
         # chargement des images
         imgcol = cv2.imread(pcolor)
+        imgcol = cv2.resize(imgcol, (cfg['img_size'], cfg['img_size']))
         imgseg = cv2.imread(psegment)
         imgseg = cv2.cvtColor(imgseg.astype('uint8'), cv2.COLOR_BGR2GRAY)/255.
         #skip unknown segmentation

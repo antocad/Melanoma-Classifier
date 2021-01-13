@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from src._get_segmentations_utils import wb, dullrazor
-import cv2
+import cv2, os, math
 
 def _bytes_feature(value):
     """Returns a bytes_list from a string / byte."""
@@ -50,21 +50,21 @@ def encode_example(image, image_name, target, features_tab):
 ################################################################################
 # PREPROCESSING PART ###########################################################
 ################################################################################
-def crop(img):
-    height, width, depth = img.shape
+def crop(image):
+    height, width, depth = image.shape
     x = int(width/2)
     y = int(height/2)
     r = np.amin((x,y))
     circle_img = np.zeros((height, width), np.uint8)
     cv2.circle(circle_img, (x,y), int(r), 1, thickness=-1)
-    img = cv2.bitwise_and(img, img, mask=circle_img)
-    return img
+    image = cv2.bitwise_and(image, image, mask=circle_img)
+    return image
 
-def filter1(img, sigmaX=7):
+def filter1(image, sigmaX=7):
     #filter crop clean
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = cv2.addWeighted(img, 4, cv2.GaussianBlur(img, (0,0) , sigmaX), -4, 128)
-    return img
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.addWeighted(image, 4, cv2.GaussianBlur(image, (0,0) , sigmaX), -4, 128)
+    return image
 
 def filter2(image):
     #Bengraham
@@ -77,28 +77,30 @@ def filter3(image):
     image = cv2.addWeighted(image, 4, cv2.GaussianBlur(image, (0,0), 10), -4 , 128)
     return image
 
-def preprocessing(img):
-    img  = np.dstack([wb(channel, 0.05) for channel in cv2.split(img)])
-    img = dullrazor(img)
-    img = crop(img)
-    return img
+def preprocessing(image):
+    image  = np.dstack([wb(channel, 0.05) for channel in cv2.split(image)])
+    image = dullrazor(image)
+    return image
 ################################################################################
 ################################################################################
 ################################################################################
 
-def dataframe_to_tfrecord(cfg, df, img_path, output_path, preprocess_function):
+def dataframe_to_tfrecord(cfg, df, img_path, output_path, preprocess_function, nb):
+    if not os.path.exists(output_path):
+        os.mkdir(output_path)
     labeled = False
     if 'target' in df.columns:
         labeled = True
     IMGS = np.array(df.filename, dtype='str')
-    SIZE = len(IMGS)
+    SIZE = math.ceil(len(IMGS)/nb)
     PATH = img_path
     CT = len(IMGS)//SIZE + int(len(IMGS)%SIZE!=0)
     for j in range(CT):
         print()
-        print('Writing TFRecord %i of %i...'%(j,CT))
+        print('Writing TFRecord %i of %i...'%(j,CT-1))
         CT2 = min(SIZE,len(IMGS)-j*SIZE)
-        with tf.io.TFRecordWriter(output_path) as writer:
+        print(output_path+'tfrecord%.2i-%i.tfrec'%(j, CT2))
+        with tf.io.TFRecordWriter(output_path+'tfrecord%.2i-%i.tfrec'%(j, CT2)) as writer:
             for k in range(CT2):
                 img = cv2.imread(PATH+IMGS[SIZE*j+k])
                 img = cv2.resize(img, (cfg['img_size'],cfg['img_size']))
@@ -123,5 +125,5 @@ def dataframe_to_tfrecord(cfg, df, img_path, output_path, preprocess_function):
                 #return row,name
                 writer.write(example)
                 if k%100==0: print(k,', ',end='')
-            print("\n----DONE")
+        print("\n----DONE")
     return None
