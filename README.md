@@ -47,7 +47,7 @@ I also tried to reproduce the famous *ABCD* rule (Assymetry, Border irregularity
 
 Morphological formulas | Assymetry [ref](https://www.researchgate.net/publication/319354997_Classification_of_Benign_and_Malignant_Melanocytic_Lesions_A_CAD_Tool) | Border irregularity [ref](https://www.researchgate.net/publication/319354997_Classification_of_Benign_and_Malignant_Melanocytic_Lesions_A_CAD_Tool) | Colors [ref](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3160648/) |
 ------------ | ------------ | ------------ | ------------ |
-extent | ![equation](https://latex.codecogs.com/svg.latex?min(A_x,%20A_y)/A) | ![equation](https://latex.codecogs.com/svg.latex?P%20*%20(1/d%20-%201/D)) | F4, F5, F6
+extent | ![equation](https://latex.codecogs.com/svg.latex?min(A_x,%20A_y)/A) | ![equation](https://latex.codecogs.com/png.latex?P%20*%20%281/d%20-%201/D%29) | F4, F5, F6
 solidity | ![equation](https://latex.codecogs.com/svg.latex?(A_x%20+%20A_y)/A) | | F10, F11, F12
 ![equation](https://latex.codecogs.com/svg.latex?d/D) | | | F13, F14, F15
 ![equation](https://latex.codecogs.com/svg.latex?4A/(\pi%20d^2)) |
